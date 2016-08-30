@@ -58,7 +58,7 @@ public class SalaDeCine {
             }else if(opcion==4){//4.Recargar TARCINE
                 recargarTarcine();
             }else if(opcion==5){//5.Pagar reservas
-                System.out.println("Reserva pagada!");
+                pagarReservas();
             }else if(opcion==6){//6.Cancelar reserva
                 anularReservas();
             }else if(opcion==7){//7.Mostrar disponibles
@@ -173,12 +173,35 @@ public class SalaDeCine {
                     }
                     siguiente=true;
                 }else if(opcion==2){
-                    if(aux<8){
-                        ventaTotal=ventaTotal+7200;
-                    }else{
-                        ventaTotal=ventaTotal+9900;
-                    }
-                    System.out.println("Obtuviste un descuento del 10%!!!");
+                    boolean valido = false;
+                    int captura;//captura con el teclado.
+                        System.out.println("Número de TARCINE con el que desea pagar:");
+                        captura=teclado.nextInt();
+                        for(int i=0; i<50; i++){
+                            if(captura == tarcine[0][i]){
+                                System.out.println("::::::::::::::::::::");
+                                System.out.println(":Número encontrado!:");
+                                System.out.println("::::::::::::::::::::");
+                                valido=true;
+                                if(aux<8){
+                                    tarcine[1][i]-=7200;
+                                    ventaTotal=ventaTotal+7200;
+                                }else{
+                                    tarcine[1][i]-=9900;
+                                    ventaTotal=ventaTotal+9900;
+                                }
+                                System.out.println("Obtuviste un descuento del 10%!!!");
+                                System.out.println("Su saldo actual es de: $"+tarcine[1][i]);
+                                break;
+                            }
+                        }
+                        if(valido==false){
+                            System.out.println("::::::::::::::::::::::::::::::");
+                            System.out.println(":::: El número no existe! ::::");
+                            System.out.println(":No se ha realizado la compra:");
+                            System.out.println("::::::::::::::::::::::::::::::");
+                            return false;
+                        }
                     siguiente=true;
                 }else{
                     System.out.println("::::::::::::::::::::::::::::::::::::::::::");
@@ -232,6 +255,36 @@ public class SalaDeCine {
         auxFila=reservaFila[fila][columna];
         auxColumna=reservaColumna[fila][columna];
         asientos[auxFila][auxColumna]=1;
+        reservaFila[fila][columna]=0;
+        reservaColumna[fila][columna]=0;
+    }
+    static void reservasPagadas(int columna, int fila){
+        int auxFila;
+        int auxColumna;
+        auxFila=reservaFila[fila][columna];
+        auxColumna=reservaColumna[fila][columna];
+        if(auxFila<8){
+            ventaTotal=ventaTotal+8000;
+        }else{
+            ventaTotal=ventaTotal+11000;
+        }
+        asientos[auxFila][auxColumna]=3;
+        reservaFila[fila][columna]=0;
+        reservaColumna[fila][columna]=0;
+    }
+    static void reservasPagadasTarcine(int columna, int fila){
+        int auxFila;
+        int auxColumna;
+        auxFila=reservaFila[fila][columna];
+        auxColumna=reservaColumna[fila][columna];
+        if(auxFila<8){
+            tarcine[1][columna]-=7200;
+            ventaTotal=ventaTotal+7200;
+        }else{
+            tarcine[1][columna]-=9900;
+            ventaTotal=ventaTotal+9900;
+        }
+        asientos[auxFila][auxColumna]=3;
         reservaFila[fila][columna]=0;
         reservaColumna[fila][columna]=0;
     }
@@ -386,7 +439,6 @@ public class SalaDeCine {
                 }
                 for(int j=0; j<tamano; j++){
                     System.out.println("Ingrese el asiento a reservar.");
-/////////////////////////////////////////////////////////
                     boolean siguiente = false;
                     boolean reserva = false;
                     int columna=0;
@@ -414,7 +466,6 @@ public class SalaDeCine {
                         }
                         reserva=asientoReservado(columna,fila,i,j);
                     }
-/////////////////////////////////////////////////////////
                 }
                 break;
             }
@@ -445,7 +496,7 @@ public class SalaDeCine {
                     break;
                 }
                 tarcine[2][i]=0;//cambia el estado a sin reserva.
-                tamano=tarcine[3][i];
+                tamano=tarcine[3][i];//tamano guarda temporalmente el tamaño de la reserva
                 tarcine[3][i]=0;//el tamaño de reserva es cero.
                 for(int j=0; j<tamano; j++){
                     asientoAnulado(i,j);
@@ -453,6 +504,65 @@ public class SalaDeCine {
                 System.out.println("::::::::::::::::::::");
                 System.out.println(":Reservas anuladas!:");
                 System.out.println("::::::::::::::::::::");
+                break;
+            }
+        }
+        if(valido==false){
+            System.out.println("::::::::::::::::::::::");
+            System.out.println(":El número no existe!:");
+            System.out.println("::::::::::::::::::::::");
+        }
+    }
+    static void pagarReservas(){
+        Scanner teclado = new Scanner(System.in);
+        boolean valido = false;
+        int captura;//captura con el teclado.
+        System.out.println("Número de TARCINE al que desea pagar todas las reservas: ");
+        captura=teclado.nextInt();
+        int tamano;
+        for(int i=0; i<50; i++){
+            if(captura == tarcine[0][i]){
+                System.out.println("::::::::::::::::::::");
+                System.out.println(":Número encontrado!:");
+                System.out.println("::::::::::::::::::::");
+                valido=true;
+                if(tarcine[2][i]==0){
+                    System.out.println(":::::::::::::::::::::");
+                    System.out.println(":No tienes reservas!:");
+                    System.out.println(":::::::::::::::::::::");
+                    break;
+                }
+                tarcine[2][i]=0;//cambia el estado a sin reserva.
+                tamano=tarcine[3][i];//tamano guarda temporalmente el tamaño de la reserva
+                tarcine[3][i]=0;//el tamaño de reserva es cero.
+                boolean salida=false;
+                while(!salida){
+                    System.out.println("Cómo desea pagar sus reservas?");
+                    System.out.println("1. Efectivo     2. TARCINE");
+                    int opcion;
+                    opcion=teclado.nextInt();
+                    if(opcion==1){
+                        for(int j=0; j<tamano; j++){
+                            reservasPagadas(i,j);
+                        }
+                        salida=true;
+                    }else if(opcion==2){
+                        for(int j=0; j<tamano; j++){
+                            reservasPagadasTarcine(i,j);
+                        }
+                        System.out.println(":::::::::::::::::::::::");
+                        System.out.println(":Su saldo actual es de:");
+                        System.out.println("::::::: $"+tarcine[1][i]+" :::::::::");
+                        salida=true;
+                    }else{
+                        System.out.println("::::::::::::::::::::::::::::::::::::::::::");
+                        System.out.println(":No has seleccionado una opción correcta!:");
+                        System.out.println("::::::::::::::::::::::::::::::::::::::::::");
+                    }
+                }
+                System.out.println(":::::::::::::::::::");
+                System.out.println(":Reservas pagadas!:");
+                System.out.println(":::::::::::::::::::");
                 break;
             }
         }
