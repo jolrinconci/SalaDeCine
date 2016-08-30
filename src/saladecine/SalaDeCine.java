@@ -11,7 +11,7 @@ package saladecine;
  * tarjeta y venta normal de boletería; además de mostrar los asientos 
  * disponibles, vendidos y reservados.
  * 
- * @author José Luis Rincón
+ * @author José Luis Rincón Ciriano
  * @version 1.0
  * since 28/08/2016
  */
@@ -19,7 +19,14 @@ import java.util.Scanner;//importamos Scanner para usarlo en la captura del tecl
 public class SalaDeCine {
     //variables globales.
     static int[][] asientos = new int[11][20];//En esta matriz se guardan la disponibilidad de los asientos. 1 diponible, 2 en reserva, y 3 vendido.
-    static int ventaTotal=0;//total de las ventas.
+    static int ventaTotal=0;//total de las ventas. Inclute la venta y recarga de tarjetas.
+    static int[][] reservaFila = new int[10][50];//limitado a 10 reservas por tarcine.
+    static int[][] reservaColumna = new int[10][50];//limitado a 10 reservas por tarcine.
+    static int[][] tarcine = new int[3][50];//información de las tarjetas tarcine. Actualmente hasta 50 tarjetas.
+    //en las filas del 0 al 2 tenemos:(inicialmente todos los valores son iguales a cero)
+    //0:documento ó número de tarjeta.
+    //1:saldo.
+    //2:tiene reservas?.(1 no, 2 si)
     /**
      * @param args the command line arguments
      */
@@ -33,46 +40,21 @@ public class SalaDeCine {
         columnas=valorInicialColumnas();//Valor de columnas que se muestra en pantalla.
         filas=valorInicialFilas();//Valor de filas que se muestra en pantalla.
         valorInicialAsientos();//Todos los asientos disponibles.
+        valorInicialTarcine();
+        valorInicialReservas();
         
         while(!salida){//ciclo principal del programa.
             int opcion = menuPrincipal();
             if(opcion==1){//1.Vender boletas
-                boolean siguiente = false;
-                boolean compra = false;
-                int columna=0;
-                char fila=0;
-                while(!compra){
-                    while(!siguiente){
-                        fila=selFila();
-                        if(filaCorrecta(fila)==true){
-                            siguiente=true;
-                        }else{
-                            System.out.println("::::::::::::::::::::::::::::::::::::::::::");
-                            System.out.println(":No has seleccionado una opción correcta!:");
-                            System.out.println("::::::::::::::::::::::::::::::::::::::::::");
-                        }
-                    }
-                    while(siguiente){
-                        columna=selColumna();
-                        if(columnaCorrecta(columna)==true){
-                            siguiente=false;
-                        }else{
-                            System.out.println("::::::::::::::::::::::::::::::::::::::::::");
-                            System.out.println(":No has seleccionado una opción correcta!:");
-                            System.out.println("::::::::::::::::::::::::::::::::::::::::::");
-                        }
-                    }
-                    if(asientoVendido(columna,fila)==true){
-                        compra=true;
-                    }
-                }
+                venderBoletas();
                 System.out.println("Gracias por comprar!");
             }else if(opcion==2){//2.Reservar boletas
                 System.out.println("Reserva con éxito!");
             }else if(opcion==3){//3.Crear TARCINE
+                crearTarcine();
                 System.out.println("Se ha creado su tarjeta!");
             }else if(opcion==4){//4.Recargar TARCINE
-                System.out.println("Recarga con éxito");
+                recargarTarcine();
             }else if(opcion==5){//5.Pagar reservas
                 System.out.println("Reserva pagada!");
             }else if(opcion==6){//6.Cancelar reserva
@@ -85,6 +67,8 @@ public class SalaDeCine {
             }else if(opcion==9){//9.Reiniciar programa
                 valorInicialAsientos();//Todos los asientos disponibles.
                 ventaTotal=0;
+                valorInicialTarcine();//Se eliminan los datos existentes de tarcine.
+                valorInicialReservas();//Se eliminan las reservas de tarcine.
                 System.out.println("Datos restablecidos!");
             }else if(opcion==0){//0.Salir
                 System.out.println("Hasta luego!");
@@ -116,7 +100,22 @@ public class SalaDeCine {
                 asientos[i][j]=1;//1 diponible, 2 en reserva, y 3 vendido.
             }
         }
-    }//estado de los asientos, inicialmente todos disponibles(1)
+    }//estado de los asientos, inicialmente todos disponibles(1).
+    static void valorInicialTarcine(){
+        for(int i=0; i<3;i++){
+            for(int j=0; j<50; j++){
+                tarcine[i][j]=0;//0 vacio.
+            }
+        }
+    }//las tarjetas tarcine tiene una valor de cero;
+    static void valorInicialReservas(){
+        for(int i=0; i<10;i++){
+            for(int j=0; j<50; j++){
+                reservaFila[i][j]=0;//0 vacio.
+                reservaColumna[i][j]=0;//0 vacio.
+            }
+        }
+    }//no hay reservas en las tarjetas.
     static int menuPrincipal(){
         Scanner teclado = new Scanner(System.in);//captura el teclado.
         int opcion;
@@ -232,4 +231,92 @@ public class SalaDeCine {
         opcion=teclado.nextInt();
         return opcion;
     }//ingresamos un valor columna en el teclado y lo retornamos;
+    static void venderBoletas(){
+        boolean siguiente = false;
+        boolean compra = false;
+        int columna=0;
+        char fila=0;
+        while(!compra){//termina con una compra exitosa.
+            while(!siguiente){//termina si se ingresan valores correctos.
+                fila=selFila();
+                if(filaCorrecta(fila)==true){
+                    siguiente=true;
+                }else{
+                    System.out.println("::::::::::::::::::::::::::::::::::::::::::");
+                    System.out.println(":No has seleccionado una opción correcta!:");
+                    System.out.println("::::::::::::::::::::::::::::::::::::::::::");
+                }
+            }
+            while(siguiente){
+                columna=selColumna();
+                if(columnaCorrecta(columna)==true){
+                    siguiente=false;
+                }else{
+                    System.out.println("::::::::::::::::::::::::::::::::::::::::::");
+                    System.out.println(":No has seleccionado una opción correcta!:");
+                    System.out.println("::::::::::::::::::::::::::::::::::::::::::");
+                }
+            }
+            compra=asientoVendido(columna,fila);
+        }
+    }//vende una boleta ó asiento disponible.
+    static void crearTarcine(){
+        Scanner teclado = new Scanner(System.in);
+        boolean siguiente = false;//sale o continua el ciclo
+        int captura;//captura con el teclado.
+            while(!siguiente){//ingresa un número correcto de tarjeta.
+                System.out.println("Ingrese un número de cédula: ");
+                captura=teclado.nextInt();
+                boolean correcto=false;
+                int posicion=50;
+                for(int i=0; i<50; i++){
+                    if(captura == tarcine[0][i]){
+                        System.out.println("::::::::::::::::::::::");
+                        System.out.println(":El número ya existe!:");
+                        System.out.println("::::::::::::::::::::::");
+                        correcto = false;
+                        break;
+                    }else{
+                        correcto = true;
+                    }
+                }
+                for(int j=0; j<50; j++){
+                    if(tarcine[0][j]==0){
+                        posicion=j;
+                        break;
+                    }
+                }
+                if(correcto==true){
+                    tarcine[0][posicion]=captura;
+                    tarcine[1][posicion]=70000;
+                    ventaTotal=ventaTotal+70000;
+                    siguiente=true;
+                }
+            }
+    }//crea una tarjeta tarcine con saldo inicial y número de cédula.
+    static void recargarTarcine(){
+        Scanner teclado = new Scanner(System.in);
+        boolean siguiente = false;
+        int captura;//captura con el teclado.
+            System.out.println("Ingrese un número de tarjeta TARCINE: ");
+            captura=teclado.nextInt();
+        for(int i=0; i<50; i++){
+            if(captura == tarcine[0][i]){
+                System.out.println("::::::::::::::::::::");
+                System.out.println(":Número encontrado!:");
+                System.out.println(": Se ha recargado: :");
+                System.out.println("::::  $ 50.000  ::::");
+                System.out.println("::::::::::::::::::::");
+                tarcine[1][i]+=50000;
+                ventaTotal+=50000;
+                siguiente=true;
+                break;
+            }
+        }
+        if(siguiente==false){
+            System.out.println("::::::::::::::::::::::");
+            System.out.println(":El número no existe!:");
+            System.out.println("::::::::::::::::::::::");
+        }
+    }//recarga 50000 a una tarjeta TARCINE.
 }
